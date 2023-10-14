@@ -1,13 +1,39 @@
+import { AttentionRecord, Bookmark, History, SystemCall } from '../types';
+import { getCurrentDate } from '../utils';
+
 let startTime: number;
-let currentUrl: string | null;
-let websiteVisitDurations: { [url: string]: number } = {};
+let currentUrl: string | undefined;
+let historyRecord: { [url: string]: History } = {};
+let bookmarkRecord: Bookmark[] = [];
+
+// Listen for messages from the web page
+chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
+    if (message.action === SystemCall.GetAttentionRecord) {
+        chrome.storage.local.get(message.date, (result) => {
+            if (result[message.date]) {
+                const historyRecord = Object.values(result[message.date]['history']) as History[];
+                const bookmarkRecord = result[message.date]['bookmarks'] as Bookmark[];
+                const attentionRecord: AttentionRecord = {
+                    history: historyRecord,
+                    bookmarks: bookmarkRecord,
+                };
+                sendResponse(attentionRecord);
+            } else {
+                sendResponse({
+                    error: 'Not Found',
+                });
+            }
+        });
+    }
+});
 
 // Event listener for when the extension is opened
 chrome.runtime.onStartup.addListener(() => {
     const currentDate = getCurrentDate();
     chrome.storage.local.get(currentDate, (result) => {
         if (result[currentDate]) {
-            websiteVisitDurations = result[currentDate];
+            historyRecord = result[currentDate]['history'];
+            bookmarkRecord = result[currentDate]['bookmarks'];
         }
     });
 });
@@ -15,7 +41,7 @@ chrome.runtime.onStartup.addListener(() => {
 // Event listener for when the browser is closed or the tab is closed
 chrome.tabs.onRemoved.addListener(() => {
     stopRecording();
-    saveDataToStorage(websiteVisitDurations);
+    saveDataToStorage('history');
 });
 
 // Event listener for when the active tab is changed
@@ -38,6 +64,16 @@ chrome.tabs.onUpdated.addListener((_, changeInfo, tab) => {
     }
 });
 
+// Event listener for when a bookmark is created
+chrome.bookmarks.onCreated.addListener((_, bookmark) => {
+    bookmarkRecord.push({
+        title: bookmark.title,
+        url: bookmark.url,
+        addedAt: bookmark.dateAdded,
+    });
+    saveDataToStorage('bookmarks');
+});
+
 // Timer to check if the current recording interval needs to be saved
 setInterval(() => {
     // Check if the current time is past the end of the day in UTC
@@ -47,30 +83,43 @@ setInterval(() => {
 
     if (Date.now() >= endOfDay.getTime()) {
         stopRecording();
-        saveDataToStorage(websiteVisitDurations);
-        // Reset the data for the new day
-        websiteVisitDurations = {};
+        saveDataToStorage('history');
+        historyRecord = {}; // Reset the data for the new day
+        bookmarkRecord = [];
     }
 }, 60000); // Run every minute (adjust the interval as needed)
 
-function saveDataToStorage(data: any) {
-    chrome.storage.local.set({ [getCurrentDate()]: data });
-}
+function saveDataToStorage(type: 'history' | 'bookmarks') {
+    const currentDate = getCurrentDate();
+    let currentDateData;
 
-function getCurrentDate(): string {
-    const now = new Date();
-    const year = now.getUTCFullYear();
-    const month = now.getUTCMonth() + 1; // Months are zero-based
-    const day = now.getUTCDate();
-
-    return `${year}-${month}-${day}`;
+    chrome.storage.local.get(currentDate, (result) => {
+        if (type === 'history') {
+            currentDateData = {
+                history: historyRecord,
+                ...result[currentDate],
+            };
+        } else {
+            currentDateData = {
+                bookmarks: bookmarkRecord,
+                ...result[currentDate],
+            };
+        }
+        chrome.storage.local.set({ [currentDate]: currentDateData });
+    });
 }
 
 function startRecording(url: string) {
     currentUrl = url;
     startTime = Date.now();
-    if (!websiteVisitDurations[url]) {
-        websiteVisitDurations[url] = 0;
+    if (!historyRecord[url]) {
+        historyRecord[url] = {
+            url,
+            visitDuration: 0,
+            visitCount: 1,
+        };
+    } else {
+        historyRecord[url].visitCount++;
     }
 }
 
@@ -78,13 +127,12 @@ function stopRecording() {
     if (currentUrl) {
         const elapsedTime = Date.now() - startTime;
 
-        if (websiteVisitDurations[currentUrl]) {
-            websiteVisitDurations[currentUrl] += elapsedTime;
+        if (historyRecord[currentUrl]) {
+            historyRecord[currentUrl].visitDuration += elapsedTime;
         } else {
-            websiteVisitDurations[currentUrl] = elapsedTime;
+            historyRecord[currentUrl].visitDuration = elapsedTime;
         }
-        currentUrl = null;
+        historyRecord[currentUrl].lastVisit = Date.now();
+        currentUrl = undefined;
     }
 }
-
-export {};

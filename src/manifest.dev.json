@@ -4,7 +4,7 @@
     "description": "made by awesome-chrome-extension-boilerplate",
     "manifest_version": 2,
     "minimum_chrome_version": "80",
-    "permissions": ["history", "tab", "tabs", "storage", "runtime"],
+    "permissions": ["history", "tab", "tabs", "storage", "runtime", "bookmarks"],
     "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
     "web_accessible_resources": ["icons/*", "images/*", "fonts/*"],
     "background": {
