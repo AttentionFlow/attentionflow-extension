@@ -1,7 +1,7 @@
 {
-    "name": "awesome chrome extension boilerplate",
+    "name": "attentionflow extension",
     "version": "1.0",
-    "description": "made by awesome-chrome-extension-boilerplate",
+    "description": "attentionflow extension manifest made by Ownership Labs",
     "manifest_version": 2,
     "minimum_chrome_version": "80",
     "permissions": ["history", "tab", "tabs", "storage", "runtime", "bookmarks"],

@@ -1,4 +1,16 @@
 {
+    "Search": [
+        "google.com",
+        "bing.com",
+        "yahoo.com",
+        "duckduckgo.com",
+        "yandex.com",
+        "baidu.com",
+        "ask.com",
+        "aol.com",
+        "qwant.com",
+        "dogpile.com"
+    ],
     "Social Media": [
         "facebook.com",
         "twitter.com",
@@ -9,7 +21,9 @@
         "tiktok.com",
         "reddit.com",
         "weibo.com",
-        "vk.com"
+        "vk.com",
+        "discord.com",
+        "reddit.com"
     ],
     "News": [
         "bbc.com",
@@ -26,6 +40,7 @@
     "E-commerce": [
         "amazon.com",
         "ebay.com",
+        "taobao.com",
         "aliexpress.com",
         "walmart.com",
         "target.com",
@@ -47,7 +62,7 @@
         "ghost.org",
         "typepad.com"
     ],
-    "Academic": [
+    "Academic/Technology": [
         "scholar.google.com",
         "researchgate.net",
         "academia.edu",
@@ -57,9 +72,12 @@
         "springer.com",
         "nature.com",
         "elsevier.com",
-        "arxiv.org"
+        "arxiv.org",
+        "wikipedia.org",
+        "github.com"
     ],
     "Entertainment": [
+        "bilibili.com",
         "youtube.com",
         "netflix.com",
         "spotify.com",
@@ -69,6 +87,42 @@
         "soundcloud.com",
         "twitch.tv",
         "crunchyroll.com",
-        "hotstar.com"
+        "hotstar.com",
+        "pornhub.com",
+        "xvideos.com"
+    ],
+    "Finance": [
+        "bankofamerica.com",
+        "chase.com",
+        "wellsfargo.com",
+        "citigroup.com",
+        "hsbc.com",
+        "barclays.com",
+        "morganstanley.com",
+        "goldmansachs.com",
+        "jpmorgan.com",
+        "ubs.com",
+        "blackrock.com",
+        "vanguard.com",
+        "uniswap.org",
+        "compound.finance",
+        "aave.com",
+        "makerdao.com",
+        "sushiswap.fi",
+        "curve.fi",
+        "balancer.finance",
+        "yearn.finance",
+        "synthetix.io",
+        "defipulse.com",
+        "opensea.io",
+        "rarible.com",
+        "foundation.app",
+        "niftygateway.com",
+        "superrare.co",
+        "knownorigin.io",
+        "async.art",
+        "decentraland.org",
+        "cryptovoxels.com",
+        "the-sandbox.com"
     ]
 }
