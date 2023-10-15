@@ -13,6 +13,22 @@
         "discord.com",
         "reddit.com"
     ],
+    "Productivity": [
+        "docs.google.com",
+        "office.com",
+        "trello.com",
+        "asana.com",
+        "slack.com",
+        "zoom.us",
+        "dropbox.com",
+        "evernote.com",
+        "notion.so",
+        "github.com",
+        "alchemy.com",
+        "feishu.cn",
+        "excalidraw.com",
+        "figma.com"
+    ],
     "News": [
         "bbc.com",
         "cnn.com",
@@ -23,7 +39,9 @@
         "aljazeera.com",
         "abcnews.go.com",
         "usatoday.com",
-        "indiatimes.com"
+        "indiatimes.com",
+        "baijiahao.baidu.com",
+        "mbd.baidu.com"
     ],
     "E-commerce": [
         "amazon.com",
@@ -36,7 +54,12 @@
         "flipkart.com",
         "jd.com",
         "rakuten.com",
-        "newegg.com"
+        "newegg.com",
+        "pinduoduo.com",
+        "shein.com",
+        "ashford.com",
+        "jomashop.com",
+        "temu.com"
     ],
     "Blogs": [
         "wordpress.com",
@@ -49,9 +72,10 @@
         "hubpages.com",
         "ghost.org",
         "typepad.com",
-        "blog.csdn.net"
+        "blog.csdn.net",
+        "jianshu.com"
     ],
-    "Academic/Technology": [
+    "Knowledge/Technology/Academic": [
         "scholar.google.com",
         "researchgate.net",
         "academia.edu",
@@ -63,7 +87,6 @@
         "elsevier.com",
         "arxiv.org",
         "wikipedia.org",
-        "github.com",
         "quora.com",
         "zhihu.com"
     ],
@@ -114,7 +137,11 @@
         "async.art",
         "decentraland.org",
         "cryptovoxels.com",
-        "the-sandbox.com"
+        "the-sandbox.com",
+        "binance.com",
+        "okx.com",
+        "huobi.com",
+        "coingecko.com"
     ],
     "Search": [
         "google.com",

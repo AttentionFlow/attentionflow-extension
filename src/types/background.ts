@@ -1,12 +1,13 @@
 export type WebsiteCategory =
-    | 'Search'
     | 'Social Media'
+    | 'Productivity'
     | 'News'
     | 'E-commerce'
     | 'Blogs'
-    | 'Academic/Technology'
+    | 'Knowledge/Technology/Academic'
     | 'Entertainment'
     | 'Finance'
+    | 'Search'
     | 'Other';
 
 export interface History {
