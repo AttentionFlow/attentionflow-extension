@@ -35,8 +35,6 @@
         ]
     },
     "dependencies": {
-        "@particle-network/auth": "^1.2.1",
-        "@particle-network/provider": "^1.2.0",
         "antd": "^4.19.1",
         "dayjs": "^1.10.8",
         "ethers": "5",
