@@ -6,6 +6,55 @@ let currentUrl: string | undefined;
 let historyRecord: { [url: string]: History } = {};
 let bookmarkRecord: Bookmark[] = [];
 
+function saveDataToStorage(type: 'history' | 'bookmarks') {
+    const currentDate = getCurrentDate();
+    let currentDateData;
+
+    chrome.storage.local.get(currentDate, (result) => {
+        if (type === 'history') {
+            currentDateData = {
+                history: historyRecord,
+                ...result[currentDate],
+            };
+        } else {
+            currentDateData = {
+                bookmarks: bookmarkRecord,
+                ...result[currentDate],
+            };
+        }
+        chrome.storage.local.set({ [currentDate]: currentDateData });
+    });
+}
+
+function startRecording(url: string) {
+    currentUrl = url;
+    startTime = Date.now();
+    if (!historyRecord[url]) {
+        historyRecord[url] = {
+            url,
+            category: getCategoryFromUrl(url),
+            visitDuration: 0,
+            visitCount: 1,
+        };
+    } else {
+        historyRecord[url].visitCount++;
+    }
+}
+
+function stopRecording() {
+    if (currentUrl) {
+        const elapsedTime = Date.now() - startTime;
+
+        if (historyRecord[currentUrl]) {
+            historyRecord[currentUrl].visitDuration += elapsedTime;
+        } else {
+            historyRecord[currentUrl].visitDuration = elapsedTime;
+        }
+        historyRecord[currentUrl].lastVisit = Date.now();
+        currentUrl = undefined;
+    }
+}
+
 // Listen for messages from the web page
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
     if (message.action === SystemCall.GetAttentionRecord) {
@@ -66,29 +115,68 @@ chrome.tabs.onUpdated.addListener((_, changeInfo, tab) => {
 });
 
 // Event listener for when a bookmark is created
-chrome.bookmarks.onCreated.addListener((_, bookmark) => {
-    if (bookmark.parentId) {
-        chrome.bookmarks.get(bookmark.parentId, (result) => {
+chrome.bookmarks.onCreated.addListener((_, createInfo) => {
+    if (createInfo.parentId) {
+        chrome.bookmarks.get(createInfo.parentId, (result) => {
             const folder = result[0].title;
             bookmarkRecord.push({
-                title: bookmark.title,
-                url: bookmark.url,
-                category: getCategoryFromUrl(bookmark.url),
-                addedAt: bookmark.dateAdded,
+                title: createInfo.title,
+                url: createInfo.url,
+                category: getCategoryFromUrl(createInfo.url),
+                addedAt: createInfo.dateAdded,
                 folder,
             });
         });
     } else {
         bookmarkRecord.push({
-            title: bookmark.title,
-            url: bookmark.url,
-            category: getCategoryFromUrl(bookmark.url),
-            addedAt: bookmark.dateAdded,
+            title: createInfo.title,
+            url: createInfo.url,
+            category: getCategoryFromUrl(createInfo.url),
+            addedAt: createInfo.dateAdded,
         });
     }
 });
 
-// Timer to check if the current recording interval needs to be saved
+// Event listener for when a bookmark is removed
+chrome.bookmarks.onRemoved.addListener((_, removeInfo) => {
+    bookmarkRecord = bookmarkRecord.filter(
+        (bookmarkInfo) => bookmarkInfo.url !== removeInfo.node.url,
+    );
+});
+
+// Event listener for when a bookmark is changed
+chrome.bookmarks.onChanged.addListener((_, changeInfo) => {
+    const index = bookmarkRecord.findIndex((bookmarkInfo) => bookmarkInfo.url === changeInfo.url);
+    if (index != -1) {
+        bookmarkRecord[index].title = changeInfo.title;
+    }
+});
+
+// Event listener for when a bookmark is moved
+chrome.bookmarks.onMoved.addListener((_, moveInfo) => {
+    chrome.bookmarks.getSubTree(moveInfo.parentId, (result) => {
+        if (
+            result &&
+            result.length > 0 &&
+            result[0].children &&
+            result[0].children.length > moveInfo.index
+        ) {
+            const bookmark = result[0].children[moveInfo.index];
+
+            const index = bookmarkRecord.findIndex(
+                (bookmarkInfo) => bookmarkInfo.url === bookmark.url,
+            );
+            if (index != -1) {
+                chrome.bookmarks.get(moveInfo.parentId, (result) => {
+                    const folder = result[0].title;
+                    bookmarkRecord[index].folder = folder;
+                });
+            }
+        }
+    });
+});
+
+// Timer run every minute to check if the current recording interval needs to be saved
 setInterval(() => {
     // Check if the current time is past the end of the day in UTC
     const endOfDay = new Date();
@@ -99,56 +187,7 @@ setInterval(() => {
         stopRecording();
         saveDataToStorage('history');
         saveDataToStorage('bookmarks');
-        historyRecord = {}; // Reset the data for the new day
+        historyRecord = {};
         bookmarkRecord = [];
     }
-}, 60000); // Run every minute (adjust the interval as needed)
-
-function saveDataToStorage(type: 'history' | 'bookmarks') {
-    const currentDate = getCurrentDate();
-    let currentDateData;
-
-    chrome.storage.local.get(currentDate, (result) => {
-        if (type === 'history') {
-            currentDateData = {
-                history: historyRecord,
-                ...result[currentDate],
-            };
-        } else {
-            currentDateData = {
-                bookmarks: bookmarkRecord,
-                ...result[currentDate],
-            };
-        }
-        chrome.storage.local.set({ [currentDate]: currentDateData });
-    });
-}
-
-function startRecording(url: string) {
-    currentUrl = url;
-    startTime = Date.now();
-    if (!historyRecord[url]) {
-        historyRecord[url] = {
-            url,
-            category: getCategoryFromUrl(url),
-            visitDuration: 0,
-            visitCount: 1,
-        };
-    } else {
-        historyRecord[url].visitCount++;
-    }
-}
-
-function stopRecording() {
-    if (currentUrl) {
-        const elapsedTime = Date.now() - startTime;
-
-        if (historyRecord[currentUrl]) {
-            historyRecord[currentUrl].visitDuration += elapsedTime;
-        } else {
-            historyRecord[currentUrl].visitDuration = elapsedTime;
-        }
-        historyRecord[currentUrl].lastVisit = Date.now();
-        currentUrl = undefined;
-    }
-}
+}, 60000);
