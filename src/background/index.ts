@@ -2,7 +2,7 @@ import { AttentionRecord, Bookmark, History, SystemCall } from '../types';
 import { getCategoryFromUrl, getCurrentDate, getLocalStorage, setLocalStorage } from '../utils';
 
 let startTime: number;
-let currentUrl: string | undefined;
+let currentUrl: string;
 let historyRecord: { [url: string]: History } = {};
 let bookmarkRecord: Bookmark[] = [];
 
@@ -25,7 +25,7 @@ const saveDataToStorage = async (type: 'history' | 'bookmarks') => {
     }
 };
 
-function startRecording(url: string) {
+function startRecording(url: string, isContinue: boolean = false) {
     currentUrl = url;
     startTime = Date.now();
     if (!historyRecord[url]) {
@@ -36,39 +36,39 @@ function startRecording(url: string) {
             visitCount: 1,
         };
     } else {
-        historyRecord[url].visitCount++;
+        if (!isContinue) {
+            historyRecord[url].visitCount++;
+        }
     }
 }
 
 function stopRecording() {
-    if (currentUrl) {
-        const elapsedTime = Date.now() - startTime;
-
-        if (historyRecord[currentUrl]) {
-            historyRecord[currentUrl].visitDuration += elapsedTime;
-        } else {
-            historyRecord[currentUrl].visitDuration = elapsedTime;
-        }
-        historyRecord[currentUrl].lastVisit = Date.now();
-        currentUrl = undefined;
+    if (!currentUrl) {
+        return;
     }
+    const elapsedTime = Date.now() - startTime;
+
+    if (historyRecord[currentUrl]) {
+        historyRecord[currentUrl].visitDuration += elapsedTime;
+    } else {
+        historyRecord[currentUrl].visitDuration = elapsedTime;
+    }
+    historyRecord[currentUrl].lastVisit = Date.now();
 }
 
 // Listen for messages from the web page
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
     if (message.action === SystemCall.GetAttentionRecord) {
         if (message.date === getCurrentDate()) {
-            let _currentUrl = currentUrl;
-            if (_currentUrl) {
-                stopRecording();
-            }
+            stopRecording();
+
             saveDataToStorage('history')
                 .then(function () {
                     return saveDataToStorage('bookmarks');
                 })
                 .then(function () {
-                    if (_currentUrl) {
-                        startRecording(_currentUrl);
+                    if (currentUrl) {
+                        startRecording(currentUrl, true);
                     }
                 })
                 .then(function () {
@@ -249,5 +249,8 @@ setInterval(async () => {
         console.log('End of day:', { historyRecord, bookmarkRecord });
         historyRecord = {};
         bookmarkRecord = [];
+        if (currentUrl) {
+            startRecording(currentUrl);
+        }
     }
 }, 60000);
