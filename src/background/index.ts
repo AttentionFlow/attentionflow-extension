@@ -1,32 +1,29 @@
 import { AttentionRecord, Bookmark, History, SystemCall } from '../types';
-import { getCategoryFromUrl, getCurrentDate } from '../utils';
-
-// import { ParticleProvider } from '@particle-network/provider';
+import { getCategoryFromUrl, getCurrentDate, getLocalStorage, setLocalStorage } from '../utils';
 
 let startTime: number;
 let currentUrl: string | undefined;
 let historyRecord: { [url: string]: History } = {};
 let bookmarkRecord: Bookmark[] = [];
 
-function saveDataToStorage(type: 'history' | 'bookmarks') {
+const saveDataToStorage = async (type: 'history' | 'bookmarks') => {
     const currentDate = getCurrentDate();
-    let currentDateData;
 
-    chrome.storage.local.get(currentDate, (result) => {
-        if (type === 'history') {
-            currentDateData = {
-                history: historyRecord,
-                ...result[currentDate],
-            };
-        } else {
-            currentDateData = {
-                bookmarks: bookmarkRecord,
-                ...result[currentDate],
-            };
-        }
-        chrome.storage.local.set({ [currentDate]: currentDateData });
-    });
-}
+    const result = await getLocalStorage(currentDate);
+    if (type === 'history') {
+        const currentDateData = {
+            history: JSON.parse(JSON.stringify(historyRecord)),
+            bookmarks: result[currentDate].bookmarks,
+        };
+        await setLocalStorage(currentDate, currentDateData);
+    } else {
+        const currentDateData = {
+            history: result[currentDate].history,
+            bookmarks: bookmarkRecord,
+        };
+        await setLocalStorage(currentDate, currentDateData);
+    }
+};
 
 function startRecording(url: string) {
     currentUrl = url;
@@ -58,49 +55,120 @@ function stopRecording() {
 }
 
 // Listen for messages from the web page
+// chrome.runtime.onMessage.addListener(async (message, _, sendResponse) => {
+//     console.log('message received:', message);
+//     if (message.action === SystemCall.GetAttentionRecord) {
+//         if (message.date === getCurrentDate()) {
+//             let _currentUrl = currentUrl;
+//             if(_currentUrl) {
+//                 stopRecording();
+//             }
+//             await saveDataToStorage('history');
+//             await saveDataToStorage('bookmarks');
+//             if(_currentUrl) {
+//                 startRecording(_currentUrl);
+//             }
+//         }
+
+//         const result = await getLocalStorage(message.date);
+//         if (result[message.date]) {
+//             const _historyRecord = Object.values(result[message.date]['history']) as History[];
+//             const _bookmarkRecord = result[message.date]['bookmarks'] as Bookmark[];
+//             const attentionRecord: AttentionRecord = {
+//                 history: _historyRecord,
+//                 bookmarks: _bookmarkRecord,
+//             };
+//             console.log("response:", attentionRecord);
+//             sendResponse(attentionRecord);
+//         } else {
+//             sendResponse({
+//                 error: 'Not Found',
+//             });
+//         }
+//     }
+// });
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
-    console.log('message received:', message);
     if (message.action === SystemCall.GetAttentionRecord) {
         if (message.date === getCurrentDate()) {
-            saveDataToStorage('history');
-            saveDataToStorage('bookmarks');
-        }
-        console.log('saved...');
-        chrome.storage.local.get(message.date, (result) => {
-            console.log('filtered:', message);
-            if (result[message.date]) {
-                const historyRecord = Object.values(result[message.date]['history']) as History[];
-                const bookmarkRecord = result[message.date]['bookmarks'] as Bookmark[];
-                const attentionRecord: AttentionRecord = {
-                    history: historyRecord,
-                    bookmarks: bookmarkRecord,
-                };
-                sendResponse(attentionRecord);
-            } else {
-                sendResponse({
-                    error: 'Not Found',
-                });
+            let _currentUrl = currentUrl;
+            if (_currentUrl) {
+                stopRecording();
             }
-        });
+            saveDataToStorage('history')
+                .then(function () {
+                    return saveDataToStorage('bookmarks');
+                })
+                .then(function () {
+                    if (_currentUrl) {
+                        startRecording(_currentUrl);
+                    }
+                })
+                .then(function () {
+                    return getLocalStorage(message.date);
+                })
+                .then(function (result) {
+                    if (result[message.date]) {
+                        const _historyRecord = Object.values(
+                            result[message.date]['history'],
+                        ) as History[];
+                        const _bookmarkRecord = result[message.date]['bookmarks'] as Bookmark[];
+                        const attentionRecord: AttentionRecord = {
+                            history: _historyRecord,
+                            bookmarks: _bookmarkRecord,
+                        };
+                        console.log(`response ${message.date}:`, attentionRecord);
+                        sendResponse(attentionRecord);
+                    } else {
+                        sendResponse();
+                    }
+                })
+                .catch(function (error) {
+                    console.error(error);
+                    sendResponse({
+                        error: 'Error occurred',
+                    });
+                });
+        } else {
+            getLocalStorage(message.date).then((result) => {
+                if (result[message.date]) {
+                    const _historyRecord = Object.values(
+                        result[message.date]['history'],
+                    ) as History[];
+                    const _bookmarkRecord = result[message.date]['bookmarks'] as Bookmark[];
+                    const attentionRecord: AttentionRecord = {
+                        history: _historyRecord,
+                        bookmarks: _bookmarkRecord,
+                    };
+                    console.log(`response ${message.date}:`, attentionRecord);
+                    sendResponse(attentionRecord);
+                } else {
+                    sendResponse();
+                }
+            });
+        }
+    } else {
+        sendResponse();
     }
+    return true;
 });
 
 // Event listener for when the extension is opened
-chrome.runtime.onStartup.addListener(() => {
+chrome.runtime.onStartup.addListener(async () => {
     const currentDate = getCurrentDate();
-    chrome.storage.local.get(currentDate, (result) => {
-        if (result[currentDate]) {
-            historyRecord = result[currentDate]['history'];
-            bookmarkRecord = result[currentDate]['bookmarks'];
-        }
-    });
+    const result = await getLocalStorage(currentDate);
+    console.log('on startup,result:', result);
+    if (result[currentDate]) {
+        historyRecord = result[currentDate]['history'];
+        bookmarkRecord = result[currentDate]['bookmarks'];
+    }
 });
 
 // Event listener for when the browser is closed or the tab is closed
-chrome.tabs.onRemoved.addListener(() => {
+chrome.tabs.onRemoved.addListener(async () => {
     stopRecording();
     saveDataToStorage('history');
     saveDataToStorage('bookmarks');
+    console.log('onRemoved:', { historyRecord });
 });
 
 // Event listener for when the active tab is changed
@@ -109,6 +177,7 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
         if (tab.url) {
             stopRecording();
             startRecording(tab.url);
+            console.log('onActived:', { historyRecord });
         }
     });
 });
@@ -119,6 +188,7 @@ chrome.tabs.onUpdated.addListener((_, changeInfo, tab) => {
         if (tab.url) {
             stopRecording();
             startRecording(tab.url);
+            console.log('onUpdated:', { historyRecord });
         }
     }
 });
@@ -186,7 +256,7 @@ chrome.bookmarks.onMoved.addListener((_, moveInfo) => {
 });
 
 // Timer run every minute to check if the current recording interval needs to be saved
-setInterval(() => {
+setInterval(async () => {
     // Check if the current time is past the end of the day in UTC
     const endOfDay = new Date();
     endOfDay.setUTCHours(0, 0, 0, 0);
@@ -194,8 +264,8 @@ setInterval(() => {
 
     if (Date.now() >= endOfDay.getTime()) {
         stopRecording();
-        saveDataToStorage('history');
-        saveDataToStorage('bookmarks');
+        await saveDataToStorage('history');
+        await saveDataToStorage('bookmarks');
         historyRecord = {};
         bookmarkRecord = [];
     }

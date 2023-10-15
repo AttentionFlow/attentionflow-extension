@@ -1,7 +1,26 @@
-// import { SystemCall } from '../../types';
+import { SystemCall } from '../../types';
+
 import './style.scss';
 
-// Create a script element and inject the attentionflow object into the webpage
+async function getAttentionRecord(date: string) {
+    return new Promise((resolve) => {
+        chrome.runtime.sendMessage(
+            chrome.runtime.id,
+            { action: SystemCall.GetAttentionRecord, date },
+            (response) => {
+                resolve(response);
+            },
+        );
+    });
+}
+
+window.addEventListener('message', async (event) => {
+    if (event.source === window && event.data.type === 'FROM_INJECTED_SCRIPT') {
+        const attentionRecord = await getAttentionRecord(event.data.payload.date);
+        window.postMessage({ type: 'FROM_CONTENT_SCRIPT', payload: attentionRecord }, '*');
+    }
+});
+
 const script = document.createElement('script');
 script.textContent = `
     const EXTENSION_ID = "abbdlfdjkoideiedlmilklpfcojbbfnm";
@@ -16,17 +35,16 @@ script.textContent = `
 
     window.attentionflow = {
         getAttentionRecord: async function(date = getCurrentDate()) {
+            window.postMessage({ type: 'FROM_INJECTED_SCRIPT', payload: {date: date} }, '*');
             return new Promise((resolve) => {
-                // document.addEventListener('DOMContentLoaded', () => {
-                    chrome.runtime.sendMessage(EXTENSION_ID, { action: 'GetAttentionRecord', date }, (response) => {
-                      resolve(response);
-                    });
-                // });
+                window.addEventListener('message', function(event) {
+                    if (event.source === window && event.data.type === 'FROM_CONTENT_SCRIPT') {
+                      resolve(event.data.payload);
+                    }
+                });
             });
           },
       };
   `;
 (document.head || document.documentElement).appendChild(script);
 script.remove();
-
-window.namedssd = 'sda';

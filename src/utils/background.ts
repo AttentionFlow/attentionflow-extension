@@ -1,16 +1,32 @@
 import { WebsiteCategory, WebsiteCategoryList } from '../types';
 import WebsiteCategoryListJson from '../website.json';
 
-export function getCurrentDate(): string {
+export const getLocalStorage = async (key: string) => {
+    return new Promise<any>((resolve) => {
+        chrome.storage.local.get(key, (result) => {
+            resolve(result);
+        });
+    });
+};
+
+export const setLocalStorage = async (key: string, data: any) => {
+    return new Promise<void>((resolve) => {
+        chrome.storage.local.set({ [key]: data }, () => {
+            resolve();
+        });
+    });
+};
+
+export const getCurrentDate = (): string => {
     const now = new Date();
     const year = now.getUTCFullYear();
     const month = now.getUTCMonth() + 1; // Months are zero-based
     const day = now.getUTCDate();
 
     return `${year}-${month}-${day}`;
-}
+};
 
-export function getCategoryFromUrl(url?: string): WebsiteCategory {
+export const getCategoryFromUrl = (url?: string): WebsiteCategory => {
     if (!url) {
         return 'Other' as WebsiteCategory;
     }
@@ -28,4 +44,4 @@ export function getCategoryFromUrl(url?: string): WebsiteCategory {
     }
 
     return 'Other' as WebsiteCategory;
-}
+};

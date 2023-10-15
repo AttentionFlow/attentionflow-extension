@@ -1,17 +1,13 @@
 {
-    "name": "awesome-chrome-extension-boilerplate",
+    "name": "attentionflow-extension",
     "version": "1.0.0",
-    "description": "an awesome boilerplate for chrome extension development!",
+    "description": "Pay for attention flow!",
     "private": true,
-    "author": "YuTengjing",
+    "author": "Ownership Labs",
     "license": "MIT",
-    "homepage": "https://github.com/tjx666/awesome-chrome-extension-boilerplate#readme",
     "repository": {
         "type": "git",
         "url": "git+ssh://git@github.com/tjx666/awesome-chrome-extension-boilerplate.git"
-    },
-    "bugs": {
-        "url": "https://github.com/tjx666/awesome-chrome-extension-boilerplate/issues"
     },
     "scripts": {
         "start": "cross-env-shell NODE_ENV=development ts-node --files -P ./server/tsconfig.json ./server",
