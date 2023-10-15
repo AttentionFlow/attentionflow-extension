@@ -12,6 +12,7 @@ export const getLocalStorage = async (key: string) => {
 export const setLocalStorage = async (key: string, data: any) => {
     return new Promise<void>((resolve) => {
         chrome.storage.local.set({ [key]: data }, () => {
+            console.log('[Storage]: setted', { [key]: data });
             resolve();
         });
     });

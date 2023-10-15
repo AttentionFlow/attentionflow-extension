@@ -55,38 +55,6 @@ function stopRecording() {
 }
 
 // Listen for messages from the web page
-// chrome.runtime.onMessage.addListener(async (message, _, sendResponse) => {
-//     console.log('message received:', message);
-//     if (message.action === SystemCall.GetAttentionRecord) {
-//         if (message.date === getCurrentDate()) {
-//             let _currentUrl = currentUrl;
-//             if(_currentUrl) {
-//                 stopRecording();
-//             }
-//             await saveDataToStorage('history');
-//             await saveDataToStorage('bookmarks');
-//             if(_currentUrl) {
-//                 startRecording(_currentUrl);
-//             }
-//         }
-
-//         const result = await getLocalStorage(message.date);
-//         if (result[message.date]) {
-//             const _historyRecord = Object.values(result[message.date]['history']) as History[];
-//             const _bookmarkRecord = result[message.date]['bookmarks'] as Bookmark[];
-//             const attentionRecord: AttentionRecord = {
-//                 history: _historyRecord,
-//                 bookmarks: _bookmarkRecord,
-//             };
-//             console.log("response:", attentionRecord);
-//             sendResponse(attentionRecord);
-//         } else {
-//             sendResponse({
-//                 error: 'Not Found',
-//             });
-//         }
-//     }
-// });
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
     if (message.action === SystemCall.GetAttentionRecord) {
         if (message.date === getCurrentDate()) {
@@ -156,10 +124,13 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
 chrome.runtime.onStartup.addListener(async () => {
     const currentDate = getCurrentDate();
     const result = await getLocalStorage(currentDate);
-    console.log('on startup,result:', result);
     if (result[currentDate]) {
         historyRecord = result[currentDate]['history'];
         bookmarkRecord = result[currentDate]['bookmarks'];
+        console.log('onStartup:', {
+            historyRecord,
+            bookmarkRecord,
+        });
     }
 });
 
@@ -168,7 +139,7 @@ chrome.tabs.onRemoved.addListener(async () => {
     stopRecording();
     saveDataToStorage('history');
     saveDataToStorage('bookmarks');
-    console.log('onRemoved:', { historyRecord });
+    console.log('Tabs onRemoved:', { historyRecord, bookmarkRecord });
 });
 
 // Event listener for when the active tab is changed
@@ -177,7 +148,7 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
         if (tab.url) {
             stopRecording();
             startRecording(tab.url);
-            console.log('onActived:', { historyRecord });
+            console.log('Tabs onActived:', { historyRecord });
         }
     });
 });
@@ -188,7 +159,7 @@ chrome.tabs.onUpdated.addListener((_, changeInfo, tab) => {
         if (tab.url) {
             stopRecording();
             startRecording(tab.url);
-            console.log('onUpdated:', { historyRecord });
+            console.log('Tabs onUpdated:', { historyRecord });
         }
     }
 });
@@ -205,6 +176,7 @@ chrome.bookmarks.onCreated.addListener((_, createInfo) => {
                 addedAt: createInfo.dateAdded,
                 folder,
             });
+            console.log('Bookmarks onCreated:', { bookmarkRecord });
         });
     } else {
         bookmarkRecord.push({
@@ -213,6 +185,7 @@ chrome.bookmarks.onCreated.addListener((_, createInfo) => {
             category: getCategoryFromUrl(createInfo.url),
             addedAt: createInfo.dateAdded,
         });
+        console.log('Bookmarks onCreated:', { bookmarkRecord });
     }
 });
 
@@ -221,6 +194,7 @@ chrome.bookmarks.onRemoved.addListener((_, removeInfo) => {
     bookmarkRecord = bookmarkRecord.filter(
         (bookmarkInfo) => bookmarkInfo.url !== removeInfo.node.url,
     );
+    console.log('Bookmarks onRemoved:', { bookmarkRecord });
 });
 
 // Event listener for when a bookmark is changed
@@ -228,6 +202,7 @@ chrome.bookmarks.onChanged.addListener((_, changeInfo) => {
     const index = bookmarkRecord.findIndex((bookmarkInfo) => bookmarkInfo.url === changeInfo.url);
     if (index != -1) {
         bookmarkRecord[index].title = changeInfo.title;
+        console.log('Bookmarks onChanged:', { bookmarkRecord });
     }
 });
 
@@ -249,6 +224,7 @@ chrome.bookmarks.onMoved.addListener((_, moveInfo) => {
                 chrome.bookmarks.get(moveInfo.parentId, (result) => {
                     const folder = result[0].title;
                     bookmarkRecord[index].folder = folder;
+                    console.log('Bookmarks onMoved:', { bookmarkRecord });
                 });
             }
         }
@@ -266,6 +242,7 @@ setInterval(async () => {
         stopRecording();
         await saveDataToStorage('history');
         await saveDataToStorage('bookmarks');
+        console.log('End of day:', { historyRecord, bookmarkRecord });
         historyRecord = {};
         bookmarkRecord = [];
     }
