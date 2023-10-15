@@ -58,6 +58,10 @@ function stopRecording() {
 // Listen for messages from the web page
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
     if (message.action === SystemCall.GetAttentionRecord) {
+        if (message.date === getCurrentDate()) {
+            saveDataToStorage('history');
+            saveDataToStorage('bookmarks');
+        }
         chrome.storage.local.get(message.date, (result) => {
             if (result[message.date]) {
                 const historyRecord = Object.values(result[message.date]['history']) as History[];
