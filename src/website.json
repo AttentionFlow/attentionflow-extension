@@ -1,16 +1,4 @@
 {
-    "Search": [
-        "google.com",
-        "bing.com",
-        "yahoo.com",
-        "duckduckgo.com",
-        "yandex.com",
-        "baidu.com",
-        "ask.com",
-        "aol.com",
-        "qwant.com",
-        "dogpile.com"
-    ],
     "Social Media": [
         "facebook.com",
         "twitter.com",
@@ -60,7 +48,8 @@
         "squarespace.com",
         "hubpages.com",
         "ghost.org",
-        "typepad.com"
+        "typepad.com",
+        "blog.csdn.net"
     ],
     "Academic/Technology": [
         "scholar.google.com",
@@ -74,7 +63,9 @@
         "elsevier.com",
         "arxiv.org",
         "wikipedia.org",
-        "github.com"
+        "github.com",
+        "quora.com",
+        "zhihu.com"
     ],
     "Entertainment": [
         "bilibili.com",
@@ -124,5 +115,17 @@
         "decentraland.org",
         "cryptovoxels.com",
         "the-sandbox.com"
+    ],
+    "Search": [
+        "google.com",
+        "bing.com",
+        "yahoo.com",
+        "duckduckgo.com",
+        "yandex.com",
+        "baidu.com",
+        "ask.com",
+        "aol.com",
+        "qwant.com",
+        "dogpile.com"
     ]
 }
