@@ -5,7 +5,7 @@
     "manifest_version": 2,
     "minimum_chrome_version": "80",
     "permissions": ["history", "tab", "tabs", "storage", "runtime", "bookmarks"],
-    "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
+    "content_security_policy": "script-src 'self' 'unsafe-eval' https://auth.particle.network;",
     "web_accessible_resources": ["icons/*", "images/*", "fonts/*"],
     "background": {
         "scripts": ["js/background.js"],
@@ -13,9 +13,10 @@
     },
     "content_scripts": [
         {
-            "matches": ["https://github.com/*"],
+            "matches": ["<all_urls>"],
             "css": ["css/all.css"],
-            "js": ["js/all.js"]
+            "js": ["js/all.js"],
+            "run_at": "document_start"
         }
     ],
     "browser_action": {

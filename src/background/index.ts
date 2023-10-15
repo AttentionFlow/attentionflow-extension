@@ -1,6 +1,8 @@
 import { AttentionRecord, Bookmark, History, SystemCall } from '../types';
 import { getCategoryFromUrl, getCurrentDate } from '../utils';
 
+// import { ParticleProvider } from '@particle-network/provider';
+
 let startTime: number;
 let currentUrl: string | undefined;
 let historyRecord: { [url: string]: History } = {};
@@ -57,12 +59,15 @@ function stopRecording() {
 
 // Listen for messages from the web page
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
+    console.log('message received:', message);
     if (message.action === SystemCall.GetAttentionRecord) {
         if (message.date === getCurrentDate()) {
             saveDataToStorage('history');
             saveDataToStorage('bookmarks');
         }
+        console.log('saved...');
         chrome.storage.local.get(message.date, (result) => {
+            console.log('filtered:', message);
             if (result[message.date]) {
                 const historyRecord = Object.values(result[message.date]['history']) as History[];
                 const bookmarkRecord = result[message.date]['bookmarks'] as Bookmark[];

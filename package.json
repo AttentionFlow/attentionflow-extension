@@ -39,8 +39,11 @@
         ]
     },
     "dependencies": {
+        "@particle-network/auth": "^1.2.1",
+        "@particle-network/provider": "^1.2.0",
         "antd": "^4.19.1",
         "dayjs": "^1.10.8",
+        "ethers": "5",
         "jquery": "^3.6.0",
         "lodash": "^4.17.21",
         "normalize.css": "^8.0.1",
