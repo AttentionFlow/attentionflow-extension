@@ -12,13 +12,13 @@ const saveDataToStorage = async (type: 'history' | 'bookmarks') => {
     const result = await getLocalStorage(currentDate);
     if (type === 'history') {
         const currentDateData = {
-            history: JSON.parse(JSON.stringify(historyRecord)),
-            bookmarks: result[currentDate].bookmarks,
+            history: historyRecord,
+            bookmarks: (result[currentDate] && result[currentDate]['bookmarks']) ?? [],
         };
         await setLocalStorage(currentDate, currentDateData);
     } else {
         const currentDateData = {
-            history: result[currentDate].history,
+            history: (result[currentDate] && result[currentDate]['history']) ?? {},
             bookmarks: bookmarkRecord,
         };
         await setLocalStorage(currentDate, currentDateData);
@@ -76,10 +76,14 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
                 })
                 .then(function (result) {
                     if (result[message.date]) {
-                        const _historyRecord = Object.values(
-                            result[message.date]['history'],
-                        ) as History[];
-                        const _bookmarkRecord = result[message.date]['bookmarks'] as Bookmark[];
+                        let _historyRecord: History[] = [];
+                        if (result[message.date]['history']) {
+                            _historyRecord = Object.values(result[message.date]['history']);
+                        }
+                        let _bookmarkRecord: Bookmark[] = [];
+                        if (result[message.date]['bookmarks']) {
+                            _bookmarkRecord = result[message.date]['bookmarks'];
+                        }
                         const attentionRecord: AttentionRecord = {
                             history: _historyRecord,
                             bookmarks: _bookmarkRecord,
