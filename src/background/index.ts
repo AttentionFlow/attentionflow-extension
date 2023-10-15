@@ -1,5 +1,5 @@
 import { AttentionRecord, Bookmark, History, SystemCall } from '../types';
-import { getCurrentDate } from '../utils';
+import { getCategoryFromUrl, getCurrentDate } from '../utils';
 
 let startTime: number;
 let currentUrl: string | undefined;
@@ -42,6 +42,7 @@ chrome.runtime.onStartup.addListener(() => {
 chrome.tabs.onRemoved.addListener(() => {
     stopRecording();
     saveDataToStorage('history');
+    saveDataToStorage('bookmarks');
 });
 
 // Event listener for when the active tab is changed
@@ -66,12 +67,25 @@ chrome.tabs.onUpdated.addListener((_, changeInfo, tab) => {
 
 // Event listener for when a bookmark is created
 chrome.bookmarks.onCreated.addListener((_, bookmark) => {
-    bookmarkRecord.push({
-        title: bookmark.title,
-        url: bookmark.url,
-        addedAt: bookmark.dateAdded,
-    });
-    saveDataToStorage('bookmarks');
+    if (bookmark.parentId) {
+        chrome.bookmarks.get(bookmark.parentId, (result) => {
+            const folder = result[0].title;
+            bookmarkRecord.push({
+                title: bookmark.title,
+                url: bookmark.url,
+                category: getCategoryFromUrl(bookmark.url),
+                addedAt: bookmark.dateAdded,
+                folder,
+            });
+        });
+    } else {
+        bookmarkRecord.push({
+            title: bookmark.title,
+            url: bookmark.url,
+            category: getCategoryFromUrl(bookmark.url),
+            addedAt: bookmark.dateAdded,
+        });
+    }
 });
 
 // Timer to check if the current recording interval needs to be saved
@@ -84,6 +98,7 @@ setInterval(() => {
     if (Date.now() >= endOfDay.getTime()) {
         stopRecording();
         saveDataToStorage('history');
+        saveDataToStorage('bookmarks');
         historyRecord = {}; // Reset the data for the new day
         bookmarkRecord = [];
     }
@@ -115,6 +130,7 @@ function startRecording(url: string) {
     if (!historyRecord[url]) {
         historyRecord[url] = {
             url,
+            category: getCategoryFromUrl(url),
             visitDuration: 0,
             visitCount: 1,
         };

@@ -1,0 +1,74 @@
+{
+    "Social Media": [
+        "facebook.com",
+        "twitter.com",
+        "instagram.com",
+        "linkedin.com",
+        "pinterest.com",
+        "snapchat.com",
+        "tiktok.com",
+        "reddit.com",
+        "weibo.com",
+        "vk.com"
+    ],
+    "News": [
+        "bbc.com",
+        "cnn.com",
+        "nytimes.com",
+        "theguardian.com",
+        "washingtonpost.com",
+        "reuters.com",
+        "aljazeera.com",
+        "abcnews.go.com",
+        "usatoday.com",
+        "indiatimes.com"
+    ],
+    "E-commerce": [
+        "amazon.com",
+        "ebay.com",
+        "aliexpress.com",
+        "walmart.com",
+        "target.com",
+        "bestbuy.com",
+        "flipkart.com",
+        "jd.com",
+        "rakuten.com",
+        "newegg.com"
+    ],
+    "Blogs": [
+        "wordpress.com",
+        "blogger.com",
+        "medium.com",
+        "tumblr.com",
+        "weebly.com",
+        "livejournal.com",
+        "squarespace.com",
+        "hubpages.com",
+        "ghost.org",
+        "typepad.com"
+    ],
+    "Academic": [
+        "scholar.google.com",
+        "researchgate.net",
+        "academia.edu",
+        "ieee.org",
+        "sciencedirect.com",
+        "jstor.org",
+        "springer.com",
+        "nature.com",
+        "elsevier.com",
+        "arxiv.org"
+    ],
+    "Entertainment": [
+        "youtube.com",
+        "netflix.com",
+        "spotify.com",
+        "hulu.com",
+        "vimeo.com",
+        "dailymotion.com",
+        "soundcloud.com",
+        "twitch.tv",
+        "crunchyroll.com",
+        "hotstar.com"
+    ]
+}
