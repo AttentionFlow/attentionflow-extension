@@ -170,6 +170,9 @@ chrome.tabs.onUpdated.addListener((_, changeInfo, tab) => {
 
 // Event listener for when a bookmark is created
 chrome.bookmarks.onCreated.addListener((_, createInfo) => {
+    if (!createInfo.url) {
+        return;
+    }
     if (createInfo.parentId) {
         chrome.bookmarks.get(createInfo.parentId, (result) => {
             const folder = result[0].title;
